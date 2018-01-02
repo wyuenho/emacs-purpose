@@ -149,6 +149,8 @@ If current buffer doesn't have a filename, do nothing."
             (with-current-buffer buffer
               (rename-buffer purpose-x-code1-dired-buffer-name)
               (when (fboundp 'dired-hide-details-mode)
+                (when (not (assq 'dired-hide-details-mode minor-mode-alist))
+                  (add-minor-mode 'dired-hide-details-mode ""))
                 (dired-hide-details-mode)))
             (display-buffer buffer)
             (dired-goto-file file-path)
