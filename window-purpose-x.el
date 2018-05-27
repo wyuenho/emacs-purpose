@@ -91,6 +91,9 @@ All windows are purpose-dedicated.")
                 :name-purposes
                 `((,purpose-x-code1-dired-buffer-name . code1-dired))))
 
+(defvar purpose-x-code1-buffers-changed nil
+  "Internal variable for use with `frame-or-buffer-changed-p'.")
+
 (define-ibuffer-filter purpose-x-code1-ibuffer-files-only
     "Display only buffers that are bound to files."
   ()
@@ -114,8 +117,10 @@ All windows are purpose-dedicated.")
     (let ((ibuf (get-buffer "*Ibuffer*")))
       (when ibuf
         (with-current-buffer ibuf
-          (setq mode-line-format nil
-                truncate-lines t))))))
+          (setq truncate-lines t
+                word-wrap nil
+                visual-line-mode nil
+                mode-line-format nil))))))
 
 (defun purpose-x-code1--unset-ibuffer ()
   "Unset ibuffer settings."
@@ -157,6 +162,8 @@ If current buffer doesn't have a filename, do nothing."
           (with-current-buffer buffer
             (rename-buffer purpose-x-code1-dired-buffer-name)
             (setq truncate-lines t
+                  word-wrap nil
+                  visual-line-mode nil
                   mode-line-format nil)
             (when (fboundp 'dired-hide-details-mode)
               (when (not (assq 'dired-hide-details-mode minor-mode-alist))
@@ -169,11 +176,10 @@ If current buffer doesn't have a filename, do nothing."
           (bury-buffer (current-buffer)))))))
 
 (defun purpose-x-code1-update-changed ()
-  "Update auxiliary buffers if frame/buffer had changed.
-Uses `frame-or-buffer-changed-p' to determine whether the frame or
-buffer had changed."
-  (when (and (not (minibufferp))
-             (eq (purpose-buffer-purpose (current-buffer)) 'edit))
+  "Update auxiliary buffers if frame/buffer had changed."
+  (when (or (frame-or-buffer-changed-p 'purpose-x-code1-buffers-changed)
+            (and (not (minibufferp))
+                 (not (memq (purpose-buffer-purpose (current-buffer)) '(code1-dired buffers ilist)))))
     (purpose-x-code1-update-dired)
     (imenu-list-update)))
 
@@ -214,6 +220,7 @@ imenu."
   (purpose-x-code1--setup-ibuffer)
   (purpose-x-code1-update-dired)
   (purpose-x-code1--setup-imenu-list)
+  (frame-or-buffer-changed-p 'purpose-x-code1-buffers-changed)
   (purpose-set-window-layout purpose-x-code1--window-layout)
   (add-hook 'window-configuration-change-hook #'purpose-x-code1-update-changed))
 
