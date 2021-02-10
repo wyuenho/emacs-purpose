@@ -215,22 +215,37 @@ imenu."
                     (magit-wazzup-mode . magit-wazzup)))
   "Configuration that gives each magit major mode its own purpose.")
 
+(defvar purpose-x-old-magit-display-buffer-function nil
+  "The value of `magit-display-buffer-function' at the time
+  `purpose-x-magit-single-on' or `purpose-x-magit-multi-on' is
+  invoked.")
+
+(defun purpose-x-magit-display-buffer-function (buffer)
+  "Integrate `magit' with `window-purpose'."
+  (let ((display-buffer-overriding-action '(purpose--action-function . nil)))
+    (magit-display-buffer-traditional buffer)))
+
 ;;;###autoload
 (defun purpose-x-magit-single-on ()
   "Turn on magit-single purpose configuration."
   (interactive)
+  (setq purpose-x-old-magit-display-buffer-function magit-display-buffer-function
+        magit-display-buffer-function 'purpose-x-magit-display-buffer-function)
   (purpose-set-extension-configuration :magit purpose-x-magit-single-conf))
 
 ;;;###autoload
 (defun purpose-x-magit-multi-on ()
   "Turn on magit-multi purpose configuration."
   (interactive)
+  (setq purpose-x-old-magit-display-buffer-function magit-display-buffer-function
+        magit-display-buffer-function 'purpose-x-magit-display-buffer-function)
   (purpose-set-extension-configuration :magit purpose-x-magit-multi-conf))
 
 (defun purpose-x-magit-off ()
   "Turn off magit purpose configuration (single or multi)."
   (interactive)
-  (purpose-del-extension-configuration :magit))
+  (purpose-del-extension-configuration :magit)
+  (setq magit-display-buffer-function purpose-x-old-magit-display-buffer-function))
 
 ;;; --- purpose-x-magit ends here ---
 
