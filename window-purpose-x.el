@@ -56,14 +56,14 @@
   "The buffer name used for the `dired' buffer specific to Code1 extension."
   :group 'purpose
   :type 'string
-  :package-version "1.6.2")
+  :package-version '(window-purpose . "1.6.2"))
 
 (defcustom purpose-x-code1-dired-goto-file nil
   "Whether the entry for the current file should be highlighted
 in `dired' using `dired-goto-file'."
   :group 'purpose
   :type 'boolean
-  :package-version "1.6.2")
+  :package-version '(window-purpose . "1.6.2"))
 
 (defvar purpose-x-code1--window-layout
   '(nil
