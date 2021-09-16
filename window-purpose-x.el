@@ -200,7 +200,6 @@ If current buffer doesn't have a filename, do nothing."
 
 (defun purpose-x-code1--setup-imenu-list ()
   (dolist (var '(imenu-list-auto-update
-                 imenu-list-update-current-entry
                  imenu-list-persist-when-imenu-index-unavailable))
     (puthash var (symbol-value var) purpose-x-code1--original-imenu-list-settings)
     (set var nil))
