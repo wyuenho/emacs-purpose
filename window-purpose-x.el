@@ -185,6 +185,34 @@ If current buffer doesn't have a filename, do nothing."
           (cl-letf (((symbol-value 'purpose-select-buffer-hook) nil))
             (display-buffer buffer)))))))
 
+(defcustom purpose-x-code1-imenu-list-collect-entries-deadline 0.05
+  "Deadline for `imenu-list-collect-entries'.
+
+If `imenu-list-collect-entries' runs pass deadline, the next
+`imenu-list-update' will be done by `run-with-idle-timer' instead
+of immediately after every command."
+  :type 'float
+  :group 'purpose)
+
+(defvar purpose-x-code1-imenu-list-collect-entries-took -1)
+
+(defun purpose-x-code1-benchmark-imenu-list-collect-entries (fn &rest args)
+  (let ((start (current-time)))
+    (apply fn args)
+    (setq purpose-x-code1-imenu-list-collect-entries-took (float-time (time-since start)))))
+
+(advice-add 'imenu-list-collect-entries :around 'purpose-x-code1-benchmark-imenu-list-collect-entries)
+
+(defun purpose-x-code1-imenu-list-update-maybe ()
+  (if (> purpose-x-code1-imenu-list-collect-entries-took
+         purpose-x-code1-imenu-list-collect-entries-deadline)
+      (progn
+        (setq imenu-list-auto-update t)
+        (imenu-list-start-timer))
+    (setq imenu-list-auto-update nil)
+    (imenu-list-stop-timer)
+    (imenu-list-update)))
+
 (defun purpose-x-code1-update-changed ()
   "Update auxiliary buffers if frame/buffer had changed."
   (while-no-input
@@ -194,17 +222,15 @@ If current buffer doesn't have a filename, do nothing."
                (or (frame-or-buffer-changed-p 'purpose-x-code1-buffers-changed)
                    (not (memq (purpose-buffer-purpose (current-buffer)) '(code1-dired buffers ilist)))))
       (purpose-x-code1-update-dired)
-      (imenu-list-update))))
+      (purpose-x-code1-imenu-list-update-maybe))))
 
 (defvar purpose-x-code1--original-imenu-list-settings (make-hash-table))
 
 (defun purpose-x-code1--setup-imenu-list ()
-  (dolist (var '(imenu-list-auto-update
-                 imenu-list-persist-when-imenu-index-unavailable))
+  (dolist (var '(imenu-list-persist-when-imenu-index-unavailable))
     (puthash var (symbol-value var) purpose-x-code1--original-imenu-list-settings)
     (set var nil))
   (imenu-list-minor-mode)
-  (imenu-list-stop-timer)
   (with-current-buffer (get-buffer imenu-list-buffer-name)
     (setq truncate-lines t
           word-wrap nil
