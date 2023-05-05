@@ -94,10 +94,9 @@ All windows are purpose-dedicated.")
 (defvar purpose-x-code1-buffers-changed nil
   "Internal variable for use with `frame-or-buffer-changed-p'.")
 
-(define-ibuffer-filter purpose-x-code1-ibuffer-files-only
-    "Display only buffers that are bound to files."
-  ()
-  (buffer-file-name buf))
+(defun purpose-x-code1-ibuffer-mode-hook ()
+  "Ibuffer mode hook for Code 1."
+  (ibuffer-filter-by-visiting-file nil))
 
 (defun purpose-x-code1-ibuffer-shut-up-advice (oldfun &rest args)
   "Shut up `ibuffer-redisplay' and `ibuffer-update'"
@@ -105,10 +104,7 @@ All windows are purpose-dedicated.")
 
 (defun purpose-x-code1--setup-ibuffer ()
   "Set up ibuffer settings."
-  (add-hook 'ibuffer-mode-hook
-            (lambda ()
-              (ibuffer-filter-by-purpose-x-code1-ibuffer-files-only nil)))
-  (add-hook 'ibuffer-mode-hook #'ibuffer-auto-mode)
+  (add-hook 'ibuffer-mode-hook #'purpose-x-code1-ibuffer-mode-hook)
   (setq ibuffer-formats '((mark " " name)))
   (setq ibuffer-display-summary nil)
   (setq ibuffer-use-header-line nil)
@@ -130,12 +126,9 @@ All windows are purpose-dedicated.")
 
 (defun purpose-x-code1--unset-ibuffer ()
   "Unset ibuffer settings."
+  (remove-hook 'ibuffer-mode-hook #'purpose-x-code1-ibuffer-mode-hook)
   (advice-remove 'ibuffer-redisplay 'purpose-x-code1-ibuffer-shut-up-advice)
   (advice-remove 'ibuffer-update 'purpose-x-code1-ibuffer-shut-up-advice)
-  (remove-hook 'ibuffer-mode-hook
-               (lambda ()
-                 (ibuffer-filter-by-purpose-x-code1-ibuffer-files-only nil)))
-  (remove-hook 'ibuffer-mode-hook #'ibuffer-auto-mode)
   (setq ibuffer-formats '((mark modified read-only " "
                                 (name 18 18 :left :elide)
                                 " "
@@ -213,6 +206,18 @@ of immediately after every command."
     (imenu-list-stop-timer)
     (imenu-list-update)))
 
+(defun purpose-x-code1-update-ibuffer ()
+  (save-selected-window
+    (when-let ((buf (get-buffer "*Ibuffer*")))
+      (with-current-buffer buf
+        (select-window (get-buffer-window buf 0))
+        (unwind-protect
+            (progn
+              (setq buffer-read-only nil)
+              (run-hooks 'ibuffer-hook))
+          (setq buffer-read-only t))
+        (ibuffer-update nil t)))))
+
 (defun purpose-x-code1-update-changed ()
   "Update auxiliary buffers if frame/buffer had changed."
   (while-no-input
@@ -221,6 +226,7 @@ of immediately after every command."
                (not (eq (current-buffer) (get-buffer imenu-list-buffer-name)))
                (or (frame-or-buffer-changed-p 'purpose-x-code1-buffers-changed)
                    (not (memq (purpose-buffer-purpose (current-buffer)) '(code1-dired buffers ilist)))))
+      (purpose-x-code1-update-ibuffer)
       (purpose-x-code1-update-dired)
       (purpose-x-code1-imenu-list-update-maybe))))
 
