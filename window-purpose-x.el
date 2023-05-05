@@ -210,7 +210,8 @@ of immediately after every command."
   (save-selected-window
     (when-let ((buf (get-buffer "*Ibuffer*")))
       (with-current-buffer buf
-        (select-window (get-buffer-window buf 0))
+        (when-let ((win (get-buffer-window buf 0)))
+          (select-window win))
         (unwind-protect
             (progn
               (setq buffer-read-only nil)
