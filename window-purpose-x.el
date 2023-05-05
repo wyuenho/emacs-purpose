@@ -212,12 +212,13 @@ of immediately after every command."
       (with-current-buffer buf
         (when-let ((win (get-buffer-window buf 0)))
           (select-window win))
+        (ibuffer-update nil t)
+        (ibuffer-forward-line 0 t)
         (unwind-protect
             (progn
               (setq buffer-read-only nil)
               (run-hooks 'ibuffer-hook))
-          (setq buffer-read-only t))
-        (ibuffer-update nil t)))))
+          (setq buffer-read-only t))))))
 
 (defun purpose-x-code1-update-changed ()
   "Update auxiliary buffers if frame/buffer had changed."
