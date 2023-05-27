@@ -149,11 +149,12 @@ the directory of the current buffer in that window, using `dired'.
 If there is no window available, do nothing.
 If current buffer doesn't have a filename, do nothing."
   (save-selected-window
-    (let ((file-path (buffer-file-name)))
-      (when (and file-path
+    (when-let* ((file-path (buffer-file-name))
+                (file-dir (file-name-directory file-path)))
+      (when (and (file-exists-p file-dir)
                  (cl-delete-if 'window-dedicated-p
                                (purpose-windows-with-purpose 'code1-dired)))
-        (let ((buffer (shut-up (dired-noselect (file-name-directory file-path)))))
+        (let ((buffer (shut-up (dired-noselect file-dir))))
           ;; Make sure code1 only creates 1 dired buffer
           (dolist (other-buf (purpose-buffers-with-purpose 'code1-dired))
             (when (and (not (eq buffer other-buf))
