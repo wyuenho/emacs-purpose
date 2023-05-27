@@ -205,7 +205,9 @@ of immediately after every command."
         (imenu-list-start-timer))
     (setq imenu-list-auto-update nil)
     (imenu-list-stop-timer)
-    (imenu-list-update)))
+    (condition-case-unless-debug err
+        (imenu-list-update)
+      (error (message "%s" (error-message-string err)) nil))))
 
 (defun purpose-x-code1-update-ibuffer ()
   (save-selected-window
