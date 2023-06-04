@@ -213,8 +213,6 @@ of immediately after every command."
   (save-selected-window
     (when-let ((buf (get-buffer "*Ibuffer*")))
       (with-current-buffer buf
-        (when-let ((win (get-buffer-window buf 0)))
-          (select-window win))
         (ibuffer-update nil t)
         (ibuffer-forward-line 0 t)
         (unwind-protect
