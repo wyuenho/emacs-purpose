@@ -226,7 +226,8 @@ of immediately after every command."
   "Update auxiliary buffers if frame/buffer had changed."
   (while-no-input
     (redisplay)
-    (when (and (buffer-live-p (current-buffer))
+    (when (and (not completion-in-region-mode)
+               (buffer-live-p (current-buffer))
                (not (minibufferp))
                (not (eq (current-buffer) (get-buffer imenu-list-buffer-name)))
                (or (frame-or-buffer-changed-p 'purpose-x-code1-buffers-changed)
